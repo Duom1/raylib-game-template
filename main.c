@@ -1,4 +1,5 @@
 #include <raylib.h>
+#include <stdio.h>
 
 #ifdef PLATFORM_WEB
 #include <emscripten/emscripten.h>
@@ -11,6 +12,8 @@ typedef struct {
   Texture2D texture;
   int height;
   int width;
+  int ogHeight;
+  int ogWidth;
 } Globals;
 
 Globals globals;
@@ -20,10 +23,19 @@ void updateDrawFrame(void) {
   static Color ac;
   static Color sc;
   static Color dc;
+  static char wsize[20];
   wc = GRAY;
   ac = GRAY;
   sc = GRAY;
   dc = GRAY;
+
+  if (IsWindowResized()) {
+    globals.height = GetScreenHeight();
+    float scale = (float)globals.height / (float)globals.ogHeight;
+    globals.width = (int)((float)globals.ogWidth * scale);
+    sprintf(wsize, "%i %i", globals.width, globals.height);
+    SetWindowSize(globals.width, globals.height);
+  }
 
   if (IsKeyDown(KEY_W))
     wc = GREEN;
@@ -36,8 +48,8 @@ void updateDrawFrame(void) {
 
   BeginDrawing();
   ClearBackground(RAYWHITE);
-  static int bo = 15;
-  static int s = 100;
+  static const int bo = 15;
+  static const int s = 100;
   // clang-format off
   DrawRectangle(bo * 2 + s,      bo,          s, s, wc);
   DrawRectangle(bo,              bo * 2 + s,  s, s, ac);
@@ -46,12 +58,14 @@ void updateDrawFrame(void) {
   // clang-format on
   DrawTexture(globals.texture, globals.width - globals.texture.width,
               globals.height - globals.texture.height, WHITE);
+  DrawText(wsize, 10, 10, 20, RED);
   EndDrawing();
 }
 
 int main(void) {
-  globals.width = 800;
-  globals.height = 600;
+  globals.width = globals.ogWidth = 1920 / 2;
+  globals.height = globals.ogHeight = 1080 / 2;
+  SetConfigFlags(FLAG_WINDOW_RESIZABLE);
   InitWindow(globals.width, globals.height, "wasd tester");
 
   globals.testImage = LoadImage("./res/test.png");

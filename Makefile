@@ -35,7 +35,7 @@ web: CFLAGS = -Os -Wall
 web: WEB_RL = $(RL_HOME)/src/libraylib.a # raylib for the web
 # Raylib has minshell.html and shell.html if one of those is not 
 # selected it uses the default emscripten one.
-web: WEB_SHELL = --shell-file $(RL_HOME)/src/minshell.html
+web: WEB_SHELL = --shell-file $(RL_HOME)/src/shell.html
 web: CC = emcc
 web:
 	$(CC) -o $(NAME).html $(SOURCES) $(CFLAGS) $(WEB_RL) \
