@@ -1,0 +1,23 @@
+= Raylib template
+v1,2024
+Duom1
+
+== What is this ?
+
+Like the name implies this a simple template project for making games
+with raylib and c. The project can be compiled on GNU/Linux using 
+make or on windows using something like Msys.
+
+The Makefile expects you to have raylib installed and a compiler like gcc.
+If compiling for the web you also need to have emscripten installed and
+https://github.com/raysan5/raylib/wiki/Working-for-Web-(HTML5)#21-command-line-compilation[raylib compiled for the web].
+You also need to set the RL_HOME variable in the Makefile.
+
+== Licences
+
+raylib-game-template by Duom1 is marked with CC0 1.0 Universal. 
+To view a copy of this license, 
+visit https://creativecommons.org/publicdomain/zero/1.0/
+
+https://githu.com/raysan5/raylib[Raylib] library that this template uses 
+*is not* part of this project and is licenced under Zlib.

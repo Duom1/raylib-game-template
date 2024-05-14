@@ -9,7 +9,7 @@ ifeq ($(OS),Windows_NT)
 	LDFLAGS += -mwindows
 endif
 
-.PHONY: default def clean release debug web
+.PHONY: default def clean release debug web host itchio
 
 default: release
 def: release
@@ -27,7 +27,7 @@ $(NAME): $(OBJS)
 	$(CC) -c $< $(CFLAGS)
 
 clean:
-	rm -f $(NAME) $(OBJS) $(NAME).html $(NAME).js $(NAME).wasm
+	rm -f $(NAME) $(OBJS) $(NAME).html $(NAME).js $(NAME).wasm $(NAME).mem $(NAME).data index.html
 
 web: CFLAGS = -Os -Wall
 # Here are the instructions to compile raylib for the web.
@@ -39,4 +39,18 @@ web: WEB_SHELL = --shell-file $(RL_HOME)/src/minshell.html
 web: CC = emcc
 web:
 	$(CC) -o $(NAME).html $(SOURCES) $(CFLAGS) $(WEB_RL) \
-	-I$(RL_HOME)/src/ -L$(WEB_RL) -s USE_GLFW=3 $(WEB_SHELL) -DPLATFORM_WEB
+	--preload-file ./res \
+	-s TOTAL_MEMORY=67108864 \
+	-I$(RL_HOME)/src/ \
+	-L$(WEB_RL) \
+	-s USE_GLFW=3 \
+	$(WEB_SHELL) \
+	-DPLATFORM_WEB \
+	-DNDEBUG
+	cp $(NAME).html index.html
+
+host: web
+	python3 -m http.server 7777
+
+itchio: web
+	zip $(NAME).zip index.html $(NAME).js $(NAME).data $(NAME).wasm $(NAME).mem
