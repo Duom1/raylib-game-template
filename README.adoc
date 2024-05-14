@@ -1,4 +1,4 @@
-= Raylib template
+= Raylib game template
 v1,2024
 Duom1
 
