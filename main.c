@@ -14,6 +14,7 @@ typedef struct {
   int width;
   int ogHeight;
   int ogWidth;
+  float scale;
 } Globals;
 
 Globals globals;
@@ -24,16 +25,33 @@ void updateDrawFrame(void) {
   static Color sc;
   static Color dc;
   static char wsize[20];
+#ifndef PLATFORM_WEB
+  static bool tfull = false;
+#endif /* ifndef PLATFORM_WEB */
   wc = GRAY;
   ac = GRAY;
   sc = GRAY;
   dc = GRAY;
 
+#ifndef PLATFORM_WEB
+  if (tfull) {
+    ToggleFullscreen();
+    tfull = false;
+  }
+  if (IsKeyPressed(KEY_F11)) {
+    globals.width = 1920;
+    globals.height = 1080;
+    SetWindowSize(globals.width, globals.height);
+    tfull = !tfull;
+  }
+#endif /* ifndef PLATFORM_WEB */
   if (IsWindowResized()) {
     globals.height = GetScreenHeight();
-    float scale = (float)globals.height / (float)globals.ogHeight;
-    globals.width = (int)((float)globals.ogWidth * scale);
+    globals.scale = (float)globals.height / (float)globals.ogHeight;
+    globals.width = (int)((float)globals.ogWidth * globals.scale);
     sprintf(wsize, "%i %i", globals.width, globals.height);
+  }
+  if (IsKeyPressed(KEY_ZERO) && IsKeyDown(KEY_LEFT_CONTROL)) {
     SetWindowSize(globals.width, globals.height);
   }
 
@@ -56,8 +74,12 @@ void updateDrawFrame(void) {
   DrawRectangle(bo * 2 + s,      bo * 2 + s,  s, s, sc);
   DrawRectangle(bo * 3 + s * 2,  bo * 2 + s,  s, s, dc);
   // clang-format on
-  DrawTexture(globals.texture, globals.width - globals.texture.width,
-              globals.height - globals.texture.height, WHITE);
+  DrawTextureEx(
+      globals.texture,
+      (Vector2){globals.width - globals.texture.width * (globals.scale * 0.2),
+                globals.height -
+                    globals.texture.height * (globals.scale * 0.2)},
+      0, globals.scale * 0.2, WHITE);
   DrawText(wsize, 10, 10, 20, RED);
   EndDrawing();
 }
@@ -65,13 +87,11 @@ void updateDrawFrame(void) {
 int main(void) {
   globals.width = globals.ogWidth = 1920 / 2;
   globals.height = globals.ogHeight = 1080 / 2;
+  globals.scale = 1.0;
   SetConfigFlags(FLAG_WINDOW_RESIZABLE);
   InitWindow(globals.width, globals.height, "wasd tester");
 
-  globals.testImage = LoadImage("./res/test.png");
-  ImageResize(&globals.testImage, globals.testImage.width / 3,
-              globals.testImage.height / 3);
-  globals.texture = LoadTextureFromImage(globals.testImage);
+  globals.texture = LoadTexture("./res/test.png");
 
 #ifdef PLATFORM_WEB
   emscripten_set_main_loop(updateDrawFrame, TARGET_FPS, 1);
