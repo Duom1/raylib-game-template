@@ -8,7 +8,7 @@
 #define TARGET_FPS 60
 
 typedef struct {
-  Image testImage;
+  Texture2D swirl;
   Texture2D texture;
   int height;
   int width;
@@ -28,6 +28,12 @@ void updateDrawFrame(void) {
 #ifndef PLATFORM_WEB
   static bool tfull = false;
 #endif /* ifndef PLATFORM_WEB */
+  // related to the swirl animation
+  static int swirlIndex = 0;
+  static double animFps = 1.0 / 16.0;
+  static double swirlScale = 10.0;
+  static double prevSwi = 0;
+
   wc = GRAY;
   ac = GRAY;
   sc = GRAY;
@@ -55,6 +61,14 @@ void updateDrawFrame(void) {
     SetWindowSize(globals.width, globals.height);
   }
 
+  double curTime = GetTime();
+  if (curTime - prevSwi > animFps) {
+    prevSwi = curTime;
+    ++swirlIndex;
+    if (swirlIndex >= 15)
+      swirlIndex = 0;
+  }
+
   if (IsKeyDown(KEY_W))
     wc = GREEN;
   if (IsKeyDown(KEY_A))
@@ -64,6 +78,7 @@ void updateDrawFrame(void) {
   if (IsKeyDown(KEY_D))
     dc = GREEN;
 
+  // DRAWING LOOP ====
   BeginDrawing();
   ClearBackground(RAYWHITE);
   static const int bo = 15;
@@ -81,6 +96,12 @@ void updateDrawFrame(void) {
                     globals.texture.height * (globals.scale * 0.2)},
       0, globals.scale * 0.2, WHITE);
   DrawText(wsize, 10, 10, 20, RED);
+  DrawTexturePro(globals.swirl, (Rectangle){0, 16 * swirlIndex, 16, 16},
+                 (Rectangle){0,
+                             globals.height - (16 * swirlScale * globals.scale),
+                             16 * swirlScale * globals.scale,
+                             16 * swirlScale * globals.scale},
+                 (Vector2){0, 0}, 0, WHITE);
   EndDrawing();
 }
 
@@ -92,6 +113,7 @@ int main(void) {
   InitWindow(globals.width, globals.height, "wasd tester");
 
   globals.texture = LoadTexture("./res/test.png");
+  globals.swirl = LoadTexture("./res/swirl.png");
 
 #ifdef PLATFORM_WEB
   emscripten_set_main_loop(updateDrawFrame, TARGET_FPS, 1);
@@ -102,8 +124,8 @@ int main(void) {
   }
 #endif
 
-  UnloadImage(globals.testImage);
   UnloadTexture(globals.texture);
+  UnloadTexture(globals.swirl);
   CloseWindow();
 
   return 0;

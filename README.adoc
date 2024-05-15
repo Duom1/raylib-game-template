@@ -13,6 +13,8 @@ If compiling for the web you also need to have emscripten installed and
 https://github.com/raysan5/raylib/wiki/Working-for-Web-(HTML5)#21-command-line-compilation[raylib compiled for the web].
 You also need to set the `RL_HOME` variable in the Makefile.
 
+if you want a clean start you can replace the `main.c` file with the `cleanMain.c` file.
+
 == Licences
 
 raylib-game-template by Duom1 is marked with CC0 1.0 Universal. 
