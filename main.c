@@ -5,7 +5,7 @@
 #include <emscripten/emscripten.h>
 #endif
 
-#define TARGET_FPS 60
+#define TARGET_FPS 120
 
 typedef struct {
   Texture2D swirl;
@@ -15,6 +15,7 @@ typedef struct {
   int ogHeight;
   int ogWidth;
   float scale;
+  float wscale;
 } Globals;
 
 Globals globals;
@@ -25,6 +26,7 @@ void updateDrawFrame(void) {
   static Color sc;
   static Color dc;
   static char wsize[20];
+  static float testImgScale = 0.3;
 #ifndef PLATFORM_WEB
   static bool tfull = false;
 #endif /* ifndef PLATFORM_WEB */
@@ -54,10 +56,12 @@ void updateDrawFrame(void) {
   if (IsWindowResized()) {
     globals.height = GetScreenHeight();
     globals.scale = (float)globals.height / (float)globals.ogHeight;
-    globals.width = (int)((float)globals.ogWidth * globals.scale);
+    globals.width = GetScreenWidth();
+    globals.wscale = (float)globals.width / (float)globals.ogWidth;
     sprintf(wsize, "%i %i", globals.width, globals.height);
   }
   if (IsKeyPressed(KEY_ZERO) && IsKeyDown(KEY_LEFT_CONTROL)) {
+    globals.width = globals.ogWidth * globals.scale;
     SetWindowSize(globals.width, globals.height);
   }
 
@@ -83,25 +87,39 @@ void updateDrawFrame(void) {
   ClearBackground(RAYWHITE);
   static const int bo = 15;
   static const int s = 100;
-  // clang-format off
-  DrawRectangle(bo * 2 + s,      bo,          s, s, wc);
-  DrawRectangle(bo,              bo * 2 + s,  s, s, ac);
-  DrawRectangle(bo * 2 + s,      bo * 2 + s,  s, s, sc);
-  DrawRectangle(bo * 3 + s * 2,  bo * 2 + s,  s, s, dc);
-  // clang-format on
-  DrawTextureEx(
+  DrawRectangleRec((Rectangle){(bo * 2 + s) * globals.wscale,
+                               bo * globals.scale, s * globals.wscale,
+                               s * globals.scale},
+                   wc);
+  DrawRectangleRec((Rectangle){bo * globals.wscale,
+                               (bo * 2 + s) * globals.scale, s * globals.wscale,
+                               s * globals.scale},
+                   ac);
+  DrawRectangleRec((Rectangle){(bo * 2 + s) * globals.wscale,
+                               (bo * 2 + s) * globals.scale, s * globals.wscale,
+                               s * globals.scale},
+                   sc);
+  DrawRectangleRec((Rectangle){(bo * 3 + s * 2) * globals.wscale,
+                               (bo * 2 + s) * globals.scale, s * globals.wscale,
+                               s * globals.scale},
+                   dc);
+  DrawTexturePro(
       globals.texture,
-      (Vector2){globals.width - globals.texture.width * (globals.scale * 0.2),
-                globals.height -
-                    globals.texture.height * (globals.scale * 0.2)},
-      0, globals.scale * 0.2, WHITE);
-  DrawText(wsize, 10, 10, 20, RED);
+      (Rectangle){0, 0, globals.texture.width, globals.texture.height},
+      (Rectangle){globals.width -
+                      globals.texture.width * globals.wscale * testImgScale,
+                  globals.height -
+                      globals.texture.height * globals.scale * testImgScale,
+                  globals.texture.width * globals.wscale * testImgScale,
+                  globals.texture.height * globals.scale * testImgScale},
+      (Vector2){0, 0}, 0.0, WHITE);
   DrawTexturePro(globals.swirl, (Rectangle){0, 16 * swirlIndex, 16, 16},
                  (Rectangle){0,
                              globals.height - (16 * swirlScale * globals.scale),
-                             16 * swirlScale * globals.scale,
+                             16 * swirlScale * globals.wscale,
                              16 * swirlScale * globals.scale},
                  (Vector2){0, 0}, 0, WHITE);
+  DrawText(wsize, 10, 10, 20, RED);
   EndDrawing();
 }
 
