@@ -43,14 +43,15 @@ void updateDrawFrame(void) {
 
 #ifndef PLATFORM_WEB
   if (tfull) {
+    bool wasFull = IsWindowFullscreen();
     ToggleFullscreen();
+    if (wasFull)
+      SetWindowSize(globals.ogWidth, globals.ogHeight);
     tfull = false;
   }
   if (IsKeyPressed(KEY_F11)) {
-    globals.width = 1920;
-    globals.height = 1080;
-    SetWindowSize(globals.width, globals.height);
-    tfull = !tfull;
+    tfull = true;
+    SetWindowSize(1920, 1080);
   }
 #endif /* ifndef PLATFORM_WEB */
   if (IsWindowResized()) {
